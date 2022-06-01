@@ -73,19 +73,13 @@ jobs:
 
       - name: Install brane CLI
         run: |
-          echo "hello"
-          cd /home/runner/work/WSCS_brane/WSCS_brane
           echo "step1"
           sudo cp ./brane /usr/local/bin/brane
           sudo chmod +x /usr/local/bin/brane
           echo "step2"
           brane --help
           echo "step3"
-          cd visual
-          pwd
-          echo "step4"
       - name: Build the brane package
         run: |
-          cd visual
-          brane build container.yml
+          brane build ./container.yml
           brane list
