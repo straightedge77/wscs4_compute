@@ -83,3 +83,7 @@ jobs:
         run: |
           brane build ./container.yml
           brane list
+
+      - name: Test the brane package
+        run: |
+          brane run workflow.txt --data ./test
