@@ -280,6 +280,83 @@ def preprocessing(train):
     train = fillna_age(train)
     train = classify_social_status(train)
     return train
+
+def load_data():
+    if os.path.exists("./train.csv") and os.path.exists("./test.csv"):
+        train = pd.read_csv("./train.csv")
+        test = pd.read_csv("./test.csv")
+        train.to_csv("/data/train.csv",index=False)
+        test.to_csv("/data/test.csv",index=False)
+        return "Data Loaded"
+    else:
+        return "train.csv and test.csv not exists in package"
+
+def prep():
+    if os.path.exists("/data/train.csv") and os.path.exists("/data/test.csv"):
+        train = pd.read_csv("/data/train.csv")
+        test = pd.read_csv("/data/test.csv")
+        train_pro = preprocessing(train)
+        test_pro = preprocessing(test)
+        train_norm = normalize(train_pro.copy())
+        test_norm = normalize(test_pro.copy())
+        train_pro.to_csv("/data/train_pro.csv",index=False)
+        test_pro.to_csv("/data/test_pro.csv",index=False)
+        train_norm.to_csv("/data/train_norm.csv",index=False)
+        test_norm.to_csv("/data/test_norm.csv",index=False)
+        return "Data preprocessed"
+    else:
+        return "Data not loaded, please Load data first"
+
+def split():
+    if os.path.exists("/data/train_norm.csv") and os.path.exists("/data/test_norm.csv"):
+        train_norm = pd.read_csv("/data/train_norm.csv")
+        test_norm = pd.read_csv("/data/test_norm.csv")
+        y = train_norm['Survived'].to_frame('Survived')
+        X = train_norm.drop(['Survived', 'Cabin', 'FamilyName', 'Ticket', 'SibSp','FamilySize', 'Parch', 'PassengerByBridge', 'TicketHeader','CabinLetter', 'Title', 'Embarked', 'TicketNumber', 'Age'], axis = 1)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
+        X_train.to_csv("/data/X_train.csv",index=False)
+        X_test.to_csv("/data/X_test.csv",index=False)
+        y_train.to_csv("/data/y_train.csv",index=False)
+        y_test.to_csv("/data/y_test.csv",index=False)
+        return "Train test set splitted"
+    else:
+        return "No preprocessed data present, please preprocess it first"
+
+def train():
+    if os.path.exists("/data/X_train.csv") and os.path.exists("/data/y_train.csv"):
+        X_train = pd.read_csv("/data/X_train.csv")
+        y_train = pd.read_csv("/data/y_train.csv")
+        model = train_model(X_train, y_train)
+        pickle.dump(model, open('/data/model.pkl', 'wb'))
+        return f" -- training score: {model.score(X_train, y_train)}"
+    else:
+        return "No training data present, please perform train test split first"
+
+def evaluate():
+    if os.path.exists("/data/X_test.csv") and os.path.exists("/data/y_test.csv") and os.path.exists("/data/model.pkl"):
+        model = pickle.load(open('/data/model.pkl', 'rb'))
+        X_test = pd.read_csv("/data/X_test.csv")
+        y_test = pd.read_csv("/data/y_test.csv")
+        y_pred = model.predict(X_test.copy())
+        return f"Precission_score: {precision_score(y_test,y_pred)}\nRecall_score: {recall_score(y_test,y_pred)}\nF1-score: {f1_score(y_test,y_pred)}"
+    else:
+        return "Model not trained, please train it first"
+
+def predict():
+    if os.path.exists("/data/train_pro.csv") and os.path.exists("/data/test_pro.csv") and os.path.exists("/data/test_norm.csv") and os.path.exists("/data/model.pkl"):
+        train = pd.read_csv("/data/train_pro.csv")
+        test = pd.read_csv("/data/test_pro.csv")
+        test_norm = pd.read_csv("/data/test_norm.csv")
+        model = pickle.load(open('/data/model.pkl', 'rb'))
+        test_x = test_norm.drop(['Cabin', 'FamilyName', 'Ticket', 'SibSp','FamilySize', 'Parch', 'PassengerByBridge', 'TicketHeader','CabinLetter', 'Title', 'Embarked', 'TicketNumber', 'Age'], axis = 1)
+        prediction = model.predict(test_x.copy())
+        test['Survived'] = prediction
+        result = pd.concat([train, test], ignore_index=True)
+        result.to_csv('/data/result.csv',index=False)
+        return "Result predicted"
+    else:
+        return "Required files not found, did you finish all the previous process"
+
     
 if __name__ == '__main__':
     if len(sys.argv) != 2 or (sys.argv[1] != "load_data" and sys.argv[1] != "preprocess" and sys.argv[1] != "split" and sys.argv[1] != "train" and sys.argv[1] != "evaluate" and sys.argv[1] != "predict"):
@@ -288,74 +365,15 @@ if __name__ == '__main__':
 
     command = sys.argv[1]
     if command == "load_data":
-        if os.path.exists("./train.csv") and os.path.exists("./test.csv"):
-            train = pd.read_csv("./train.csv")
-            test = pd.read_csv("./test.csv")
-            train.to_csv("/data/train.csv",index=False)
-            test.to_csv("/data/test.csv",index=False)
-            print(yaml.dump({"output":"Data Loaded"}))
-        else:
-            print(yaml.dump({"output":"train.csv and test.csv not exists in package"}))
+        print(yaml.dump({"output":load_data()}))
     elif command == "preprocess":
-        if os.path.exists("/data/train.csv") and os.path.exists("/data/test.csv"):
-            train = pd.read_csv("/data/train.csv")
-            test = pd.read_csv("/data/test.csv")
-            train_pro = preprocessing(train)
-            test_pro = preprocessing(test)
-            train_norm = normalize(train_pro.copy())
-            test_norm = normalize(test_pro.copy())
-            train_pro.to_csv("/data/train_pro.csv",index=False)
-            test_pro.to_csv("/data/test_pro.csv",index=False)
-            train_norm.to_csv("/data/train_norm.csv",index=False)
-            test_norm.to_csv("/data/test_norm.csv",index=False)
-            print(yaml.dump({"output":"Data preprocessed"}))
-        else:
-            print(yaml.dump({"output":"Data not loaded, please Load data first"}))
+        print(yaml.dump({"output":prep()}))
     elif command == "split":
-        if os.path.exists("/data/train_norm.csv") and os.path.exists("/data/test_norm.csv"):
-            train_norm = pd.read_csv("/data/train_norm.csv")
-            test_norm = pd.read_csv("/data/test_norm.csv")
-            y = train_norm['Survived'].to_frame('Survived')
-            X = train_norm.drop(['Survived', 'Cabin', 'FamilyName', 'Ticket', 'SibSp','FamilySize', 'Parch', 'PassengerByBridge', 'TicketHeader','CabinLetter', 'Title', 'Embarked', 'TicketNumber', 'Age'], axis = 1)
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=42)
-            X_train.to_csv("/data/X_train.csv",index=False)
-            X_test.to_csv("/data/X_test.csv",index=False)
-            y_train.to_csv("/data/y_train.csv",index=False)
-            y_test.to_csv("/data/y_test.csv",index=False)
-            print(yaml.dump({"output":"Train test set splitted"}))
-        else:
-            print(yaml.dump({"output":"No preprocessed data present, please preprocess it first"}))
+        print(yaml.dump({"output":split()}))
     elif command == "train":
-        if os.path.exists("/data/X_train.csv") and os.path.exists("/data/y_train.csv"):
-            X_train = pd.read_csv("/data/X_train.csv")
-            y_train = pd.read_csv("/data/y_train.csv")
-            model = train_model(X_train, y_train)
-            pickle.dump(model, open('/data/model.pkl', 'wb'))
-            print(yaml.dump({"output":f' -- training score: {model.score(X_train, y_train)}\n'}))
-        else:
-            print(yaml.dump({"output":"No training data present, please perform train test split first"}))
+        print(yaml.dump({"output":train()}))
     elif command == "evaluate":
-        if os.path.exists("/data/X_test.csv") and os.path.exists("/data/y_test.csv") and os.path.exists("/data/model.pkl"):
-            model = pickle.load(open('/data/model.pkl', 'rb'))
-            X_test = pd.read_csv("/data/X_test.csv")
-            y_test = pd.read_csv("/data/y_test.csv")
-            y_pred = model.predict(X_test.copy())
-            print(yaml.dump({"output":f'Precission_score: {precision_score(y_test,y_pred)}\nRecall_score: {recall_score(y_test,y_pred)}\nF1-score: {f1_score(y_test,y_pred)}'}))
-        else:
-            print(yaml.dump({"output":"Model not trained, please train it first"}))
+        print(yaml.dump({"output":evaluate()}))
     elif command == "predict":
-        if os.path.exists("/data/train_pro.csv") and os.path.exists("/data/test_pro.csv") and os.path.exists("/data/test_norm.csv") and os.path.exists("/data/model.pkl"):
-            train = pd.read_csv("/data/train_pro.csv")
-            test = pd.read_csv("/data/test_pro.csv")
-            test_norm = pd.read_csv("/data/test_norm.csv")
-            model = pickle.load(open('/data/model.pkl', 'rb'))
-            test_x = test_norm.drop(['Cabin', 'FamilyName', 'Ticket', 'SibSp','FamilySize', 'Parch', 'PassengerByBridge', 'TicketHeader','CabinLetter', 'Title', 'Embarked', 'TicketNumber', 'Age'], axis = 1)
-            prediction = model.predict(test_x.copy())
-            test['Survived'] = prediction
-            result = pd.concat([train, test], ignore_index=True)
-            result.to_csv('/data/result.csv',index=False)
-            print(yaml.dump({"output":"Result predicted"}))
-        else:
-            print(yaml.dump({"output":"Required files not found, did you finish all the previous process"}))
-
+        print(yaml.dump({"output":predict()}))
     # Done
