@@ -28,10 +28,11 @@ brane import straightedge77/wscs4_compute
 ```
 You test each function of the brane package using command
 ```
-brane test --data ./data test
+brane test --data ./data predict
 ```
 You can also perform unit test using command
 ```
+brane import straightedge77/wscs4_test
 brane run test.txt --data ./test
 ```
 You run the package in the brane instance using command
