@@ -1,8 +1,6 @@
 # wscs4_assignment4 - Compute package
 
-![compute package workflow](https://github.com/straightedge77/wscs4_compute/actions/workflows/main.yml/badge.svg)
-
-[![DOI](https://zenodo.org/badge/498720522.svg)](https://zenodo.org/badge/latestdoi/498720522)
+![compute package workflow](https://github.com/straightedge77/wscs4_compute/actions/workflows/main.yml/badge.svg) [![DOI](https://zenodo.org/badge/498720522.svg)](https://zenodo.org/badge/latestdoi/498720522)
 
 ## Code Introduction
 - titanic.py is the python code file to run, it contains different functions of processing titanic dataset
