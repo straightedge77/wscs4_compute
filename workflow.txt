@@ -1,7 +1,0 @@
-import predict;
-print(load_data());
-print(preprocess());
-print(split());
-print(train());
-print(evaluate());
-print(predict());
