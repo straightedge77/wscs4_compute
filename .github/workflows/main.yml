@@ -86,4 +86,5 @@ jobs:
 
       - name: Test the brane package
         run: |
-          brane run workflow.txt --data ./test
+          brane import straightedge77/wscs4_test
+          brane run test.txt --data ./test
